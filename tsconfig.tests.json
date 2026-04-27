@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist-tests",
+    "rootDir": ".",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "ignoreDeprecations": "6.0"
+  },
+  "include": ["src/core/**/*.ts", "tests/**/*.ts"]
+}

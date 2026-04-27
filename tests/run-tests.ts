@@ -1,0 +1,27 @@
+import './ai-controller.test';
+import './certified-cycle-controller.test';
+import './certified-ai-compute-benchmark.test';
+import './certified-apple-event-log.test';
+import './certified-library-diagnostics.test';
+import './certified-patch-mutation-evaluation.test';
+import './certified-transition-diagnostics.test';
+import './cycle-library.test';
+import './cycle-scoring.test';
+import './cycle-repairer.test';
+import './game-engine.test';
+import './graph-validator.test';
+import './head-apple-rectangle-diagnostics.test';
+import './hamiltonian-certificate.test';
+import './high-scores.test';
+import './late-game-free-space-path-solver.test';
+import './multi-terminal-patch-diagnostics.test';
+import './patch-mutation-candidate-cache.test';
+import './patch-mutation-scenarios.test';
+import './patch-mutation-v1-limit-diagnostics.test';
+import './rectangle-path-cache.test';
+import './two-terminal-patch-mutation.test';
+import './two-opt-diagnostics.test';
+import './v2-patch-mutation-scenarios.test';
+import { runCollectedTests } from './testkit';
+
+void runCollectedTests();

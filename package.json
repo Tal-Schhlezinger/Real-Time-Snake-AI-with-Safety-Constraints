@@ -1,0 +1,17 @@
+{
+  "name": "snake-hamiltonian",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build && node scripts/serve.mjs",
+    "build": "tsc --noEmit && tsc -p tsconfig.app.json && node scripts/prepare-dist.mjs",
+    "preview": "node scripts/serve.mjs",
+    "test": "tsc -p tsconfig.tests.json && node -e \"require('fs').mkdirSync('dist-tests',{recursive:true}); require('fs').writeFileSync('dist-tests/package.json', '{\\\"type\\\":\\\"commonjs\\\"}')\" && node dist-tests/tests/run-tests.js",
+    "test:watch": "tsc -p tsconfig.tests.json && node -e \"require('fs').mkdirSync('dist-tests',{recursive:true}); require('fs').writeFileSync('dist-tests/package.json', '{\\\"type\\\":\\\"commonjs\\\"}')\" && node dist-tests/tests/run-tests.js"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3"
+  }
+}
