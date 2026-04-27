@@ -50,6 +50,8 @@ Attempts to reach the apple quickly using local planning.
 Following a Hamiltonian-cycle to guarantee survival.
 
 - Ensures the snake always remains on a valid non-losing route
+- May take very long time to get to the apple
+- Zero calculations mid play
 
 This solver prioritizes correctness over optimal speed.
 
