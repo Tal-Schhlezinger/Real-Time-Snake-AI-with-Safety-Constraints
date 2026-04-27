@@ -1,198 +1,208 @@
-# Snake Hamiltonian
+# Real-Time Snake AI with Hamiltonian Safety Constraints
 
-A polished Snake game built with TypeScript, HTML, and CSS. It includes:
+## Why this is interesting
 
-- Human play
-- AI play with two strategies
-- Walls and portals
-- A map designer
-- Saved maps in JSON-backed local storage
-- Per-map high scores
-- Real graph-based map validation with exact Hamiltonian-cycle search
+This project explores real-time planning for Snake under conflicting objectives:
 
-## Run Locally
+- reaching the apple quickly
+- avoiding dead-ends
+- guaranteeing survival
 
-1. Install dependencies:
+Most Snake AIs optimize locally and eventually trap themselves.  
+This project introduces a second approach that enforces a global safety invariant using Hamiltonian cycles.
 
-```bash
-npm install
-```
+The result is a system that compares:
+- fast but unsafe strategies
+- slower but provably safe strategies
 
-2. Build and serve the game locally:
+---
 
-```bash
-npm run dev
-```
+## Core Idea
 
-3. Open `http://localhost:4173`
+The key idea is to use a **Hamiltonian cycle** as a safety backbone.
 
-Useful extra commands:
+A Hamiltonian cycle is a path that:
+- visits every reachable cell exactly once
+- returns to the starting point
 
-```bash
-npm test
-npm run build
-npm run preview
-```
+If the snake follows such a cycle, it can never trap itself.
 
-`npm run build` writes the runnable site to `dist/`.
+This project builds on that idea by allowing **controlled mutations of the cycle** to safely shorten the path to the apple.
 
-## Controls
+---
 
-Human mode:
+## AI Strategies
 
-- `Arrow keys` or `WASD`: move
-- `P`: pause / resume
-- `R`: restart the current run
+The system includes two fundamentally different AI approaches:
 
-The in-game HUD also has pause, restart, and menu buttons.
+### 1. Greedy / Heuristic Solver
 
-## Main Features
+Attempts to reach the apple quickly using local planning.
 
-### Human Mode
+- Focuses on short-term efficiency
+- May enter dead-ends
+- Does not provide safety guarantees
 
-Choose a saved map and play normally with keyboard controls.
+---
 
-### AI Mode
+### 2. Hamiltonian Mutation Solver (Safe)
 
-Choose between:
+Maintains a Hamiltonian-cycle invariant to guarantee survival.
 
-- `Safe Hamiltonian`: follows the saved Hamiltonian cycle for the current legal map
-- `Greedy + safe fallback`: uses pathfinding toward apples, checks for obvious traps, and falls back to Hamiltonian movement when needed
+- Ensures the snake always remains on a valid non-losing route
+- Dynamically mutates the cycle to allow safe shortcuts
+- Rejects moves that break reachability of the tail
 
-Optional overlays can show the saved cycle and the AI plan.
+This solver prioritizes correctness over optimal speed.
 
-### Walls
+---
 
-- Walls are visible in both play mode and design mode
-- Hitting a wall loses the game
-- Walls are excluded from the playable graph
+## Safety Guarantee
 
-### Portals
+The Hamiltonian Mutation Solver guarantees a non-losing strategy, under the assumption that a Hamiltonian cycle exists for the map.
 
-- Portals are placed in linked pairs
-- Entering a portal teleports the snake through the paired portal and continues in the same direction
-- If the destination after teleporting is invalid, the snake loses
-- Apples do not spawn on portal tiles
-- Portal movement is part of the graph used by AI and validation
+At every step, the algorithm ensures that:
+- the snake follows a valid Hamiltonian cycle, or
+- transitions to a modified cycle that preserves reachability
 
-## Map Designer
+Moves that violate this invariant are rejected before execution.
 
-Use the designer to:
+---
 
-- Create a new map with custom width and height
-- Place walls
-- Place portal pairs
-- Set the snake spawn point
-- Load, rename, overwrite, and delete saved maps
-- Toggle graph, portal-link, and Hamiltonian overlays
+## Survival vs Progress
 
-Tool behavior:
+Maintaining a safe path (head to tile) guarantees survival, but does not guarantee progress.
 
-- `Wall`: place/remove walls
-- `Erase`: remove walls, portals, or the spawn point
-- `Spawn`: place the snake start on a normal playable tile
-- `Portal`: click one empty tile, then a second empty tile to create a pair
+A naive strategy, like eating apple while mentaining path from head to tile, can enter long cycles where the snake survives indefinitely while incapable of eating the apple.
 
-The designer validates in a background worker and shows `Legal`, `Illegal`, `Validating...`, `Timed out`, or `Cancelled`.
+For example:
 
-## Hamiltonian Validation, Simply Explained
+@ = apple
+H = head
+T = tail
 
-Every playable map must contain a Hamiltonian cycle before it can be saved.
+┌H@┌┐
+│T─┘│
+│┌─┐│
+└┘ └┘
 
-A Hamiltonian cycle is a loop that:
+---
 
-- visits every playable node exactly once
-- returns to the start
-- uses only legal movement edges
+## Features
 
-This project does not fake that check. Validation does:
+- Human-playable Snake
+- Multiple AI strategies
+- Real-time decision making
+- Support for walls and portals
+- Map designer with validation
+- Visualization of cycles and AI plans
+- Saved maps and results
+- Automated testing
 
-1. Build the authoritative movement graph from the grid, walls, and portals
-2. Reject obvious bad maps quickly
-3. Run an exact backtracking solver with pruning
-4. Save the found cycle with the map only if the cycle is valid
+---
 
-Fast rejections include:
+## Map Support
 
-- missing snake spawn
-- invalid portal exits
-- disconnected playable graph
-- dead-end cells
-- bridge / cut-edge detection
-- insufficient directed movement degree
+The system supports non-trivial maps, including:
 
-If validation times out or is cancelled, the map remains illegal and cannot be saved.
+- Walls (blocked cells)
+- Portals (teleport edges)
 
-## High Scores
+These are integrated directly into the graph used by:
+- validation
+- AI planning
+- Hamiltonian cycle construction
 
-Scores are saved per map in local storage.
+---
 
-Each score records:
+## Map Validation
 
-- map id and map name
-- Human or AI
-- AI strategy, when relevant
-- apples eaten
-- total elapsed time
-- average time per apple
-- time when the final apple count was reached
-- win / lose result
-- run timestamp
+Every playable map must contain a Hamiltonian cycle.
 
-Sorting rules:
+Validation is performed by:
+1. Constructing the movement graph
+2. Rejecting invalid configurations early
+3. Running an exact backtracking solver with pruning
 
-1. More apples is better
-2. For equal apple counts, lower `time to final apple count` ranks higher
+Only valid maps are accepted.
 
-You can filter the score view by `All`, `Human`, or `AI`.
+---
 
-## Win / Lose Rules
+## How It Works
 
-You lose if:
+1. A valid map is loaded (with a Hamiltonian cycle)
+2. The snake starts on the cycle
+3. Each step:
+   - Greedy solver tries to move toward the apple
+   - Hamiltonian solver enforces safety constraints
+4. Unsafe moves are rejected
+5. The snake continues without entering losing states
 
-- the snake hits itself
-- the snake hits a wall
-- the snake moves out of bounds
-- a portal move ends in an invalid destination
-- no valid next move exists when one is required
-
-You win only after:
-
-1. filling the entire playable graph
-2. then surviving one more legal move
-
-That extra final move is implemented intentionally and covered by tests.
+---
 
 ## Project Structure
 
-Core gameplay and validation live in `src/core/`.
+Core logic is located in:
 
-Important modules include:
+- `graph.ts` — movement graph construction
+- `map-validator.ts` — validation logic
+- `hamiltonian-cycle-solver.ts` — exact cycle search
+- `game-engine.ts` — main game loop
+- `ai-controller.ts` — AI strategies
 
-- `types.ts`
-- `graph.ts`
-- `map-validator.ts`
-- `hamiltonian-cycle-solver.ts`
-- `game-engine.ts`
-- `apple-spawner.ts`
-- `snake.ts`
-- `ai-controller.ts`
-- `high-score-utils.ts`
+UI and auxiliary systems:
 
-Browser/UI code lives in:
+- `ui/` — visualization and controls
+- `storage/` — persistence
+- `workers/` — background validation
 
-- `src/ui/`
-- `src/storage/`
-- `src/workers/`
+---
+
+## Run Locally
+
+```bash
+npm install
+npm run dev
+```
+Then open:
+```
+http://localhost:4173
+```
+
+---
+
+## Controls
+- Arrow keys / WASD — movement
+- P — pause
+- R — restart
+
+---
 
 ## Practical Limits
 
-Hamiltonian-cycle search is exact, so worst-case validation is still exponential.
+Hamiltonian-cycle search is computationally expensive (worst-case exponential).
 
-To keep the UI responsive:
-
+To keep the system usable:
 - validation runs in a worker
-- the designer uses a timeout
-- the new-map UI keeps boards in a practical range
+- timeouts are enforced
+- map sizes are constrained in the UI
 
-Simple rectangular maps validate quickly. Dense custom maps with many portals can take longer.
+---
+
+## Limitations
+- The safety guarantee depends on the existence of a Hamiltonian cycle
+- Dense maps with portals can be expensive to validate
+- The greedy solver can still fail on complex configurations
+
+---
+
+## Summary
+
+This project is not just a Snake game.
+
+It is a constrained real-time planning system that explores the tradeoff between:
+
+safety (global guarantees)
+efficiency (local optimization)
+
+and demonstrates how enforcing invariants can fundamentally change behavior.
