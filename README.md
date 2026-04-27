@@ -45,7 +45,17 @@ Attempts to reach the apple quickly using local planning.
 
 ---
 
-### 2. Hamiltonian Mutation Solver (Safe)
+### 2. Hamiltonian Solver (Safe)
+
+Following a Hamiltonian-cycle to guarantee survival.
+
+- Ensures the snake always remains on a valid non-losing route
+
+This solver prioritizes correctness over optimal speed.
+
+---
+
+### 3. Hamiltonian Mutation Solver (Safe & fast)
 
 Maintains a Hamiltonian-cycle invariant to guarantee survival.
 
@@ -53,7 +63,7 @@ Maintains a Hamiltonian-cycle invariant to guarantee survival.
 - Dynamically mutates the cycle to allow safe shortcuts
 - Rejects moves that break reachability of the tail
 
-This solver prioritizes correctness over optimal speed.
+This solver optimize speed without loosing correctness .
 
 ---
 
