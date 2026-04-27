@@ -47,11 +47,11 @@ Attempts to reach the apple quickly using local planning.
 
 ### 2. Hamiltonian Solver (Safe)
 
-Following a Hamiltonian-cycle to guarantee survival.
+Follows a precomputed Hamiltonian cycle to guarantee survival.
 
-- Ensures the snake always remains on a valid non-losing route
-- May take very long time to get to the apple
-- Zero calculations mid play
+- Guarantees non-losing behavior
+- Can be highly inefficient in reaching the apple
+- Requires no decision-making during gameplay
 
 This solver prioritizes correctness over optimal speed.
 
@@ -65,7 +65,7 @@ Maintains a Hamiltonian-cycle invariant to guarantee survival.
 - Dynamically mutates the cycle to allow safe shortcuts
 - Rejects moves that break reachability of the tail
 
-This solver optimize speed without loosing correctness .
+This solver optimizes speed without losing correctness.
 
 ---
 
@@ -83,9 +83,9 @@ Moves that violate this invariant are rejected before execution.
 
 ## Survival vs Progress
 
-Maintaining a safe path (head to tile) guarantees survival, but does not guarantee progress.
+Maintaining a safe path from head to tail guarantees survival, but does not guarantee progress.
 
-A naive strategy, like eating apple while mentaining path from head to tile, can enter long cycles where the snake survives indefinitely while incapable of eating the apple.
+A naive strategy, like eating apple while maintaining a path from head to tail, can enter long cycles where the snake survives indefinitely while incapable of eating the apple.
 
 For example:
 
@@ -97,6 +97,16 @@ T = tail
 │T─┘│
 │┌─┐│
 └┘ └┘
+
+In such cases, the snake may remain in a valid cycle but fail to reach the apple efficiently.
+
+The Hamiltonian Mutation Solver addresses this by:
+
+- allowing controlled modifications to a cycle that still covers the entire board
+- validating that these modifications preserve safety  
+- preferring mutations that reduce distance to the apple  
+
+This ensures that the system does not get stuck in purely survival-driven behavior.
 
 ---
 
@@ -144,11 +154,11 @@ Only valid maps are accepted.
 
 1. A valid map is loaded (with a Hamiltonian cycle)
 2. The snake starts on the cycle
-3. Each step:
-   - Greedy solver tries to move toward the apple
-   - Hamiltonian solver enforces safety constraints
-4. Unsafe moves are rejected
-5. The snake continues without entering losing states
+3. One of the AI strategies is selected:
+   - Greedy solver (fast but unsafe)
+   - Hamiltonian solver (safe but slow)
+   - Hamiltonian mutation solver (safe with improved efficiency)
+4. The selected strategy determines all movement decisions
 
 ---
 
@@ -214,7 +224,7 @@ This project is not just a Snake game.
 
 It is a constrained real-time planning system that explores the tradeoff between:
 
-safety (global guarantees)
-efficiency (local optimization)
+- safety (global guarantees)
+- efficiency (local optimization)
 
 and demonstrates how enforcing invariants can fundamentally change behavior.
